@@ -13,30 +13,30 @@
 ////////////////////////////////////////////////////////////////////////////////// 	   
 
 
-//功能:LED IO口初始化 PB0 PF7
+//功能:LED IO口初始化 PB0
 //输入:
 //输出:
 void Led_GPIO_Init(void)
 {
     GPIO_InitTypeDef  GPIO_InitStructure;
 
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB|RCC_APB2Periph_GPIOF, ENABLE);	 //使能PB,PF端口时钟
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);	 //使能PB端口时钟
 
     GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0;				 //LED0-->PB.0 端口配置
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP; 		 //推挽输出
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;		 //IO口速度为50MHz
     GPIO_Init(GPIOB, &GPIO_InitStructure);					 //根据设定参数初始化GPIOB.0
     
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_7;	    		 //LED1-->PF.7 端口配置, 推挽输出
-    GPIO_Init(GPIOF, &GPIO_InitStructure);	  				 //推挽输出 ，IO口速度为50MHz
+//    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_7;	    		 //LED1-->PF.7 端口配置, 推挽输出
+//    GPIO_Init(GPIOF, &GPIO_InitStructure);	  				 //推挽输出 ，IO口速度为50MHz
 }
-//初始化PB5和PE5为输出口.并使能这两个口的时钟		    
+//初始化PB5为输出口.并使能这两个口的时钟		    
 //LED IO初始化
 void LED_Init(void)
 {
  Led_GPIO_Init();
 
  GPIO_SetBits(GPIOB,GPIO_Pin_0);						 //PB.0 输出高
- GPIO_SetBits(GPIOF,GPIO_Pin_7); 						 //PF.7 输出高 
+// GPIO_SetBits(GPIOF,GPIO_Pin_7); 						 //PF.7 输出高 
 }
  

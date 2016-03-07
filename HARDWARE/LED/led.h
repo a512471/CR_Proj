@@ -14,7 +14,7 @@
 //All rights reserved									  
 ////////////////////////////////////////////////////////////////////////////////// 
 #define LED0 PBout(0)	// PB0
-#define LED1 PFout(7)	// PF7	
+//#define LED1 PFout(7)	// PF7	
 
 void LED_Init(void);//≥ı ºªØ
 
