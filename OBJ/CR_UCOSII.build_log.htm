@@ -7,40 +7,41 @@ G:\毕业设计\程序\基于ucosii的扫地机器人\USER\CR_UCOSII.uvproj
 Project File Date:  03/07/2016
 
 <h2>Output:</h2>
-Build target 'Target 1'
-compiling trouble-deal.c...
 compiling ble-contral.c...
-linking...
-Program Size: Code=19120 RO-data=592 RW-data=128 ZI-data=5800  
-FromELF: creating hex file...
-"..\OBJ\CR_UCOSII.axf" - 0 Error(s), 0 Warning(s).
+APP\ble-contral.c(24): warning:  #167-D: argument of type "const int8_t *" is incompatible with parameter of type "const char *"
+      strstr(input,Ble_data->Head);
+APP\ble-contral.c(24): warning:  #167-D: argument of type "int8_t *" is incompatible with parameter of type "const char *"
+      strstr(input,Ble_data->Head);
+APP\ble-contral.c: 2 warnings, 0 errors
+"APP\ble-contral.c" - 0 Error(s), 2 Warning(s).
+compiling ble-contral.c...
+APP\ble-contral.c(20): error:  #101: "Ble_data" has already been declared in the current scope
+      Ble_data->Head[0] = BLE_DATA_HEAD1;
+APP\ble-contral.c(20): error:  #65: expected a ";"
+      Ble_data->Head[0] = BLE_DATA_HEAD1;
+APP\ble-contral.c(21): error:  #44: expression must have pointer type
+      Ble_data->Head[1] = BLE_DATA_HEAD2;
+APP\ble-contral.c(22): error:  #44: expression must have pointer type
+      Ble_data->Head[2] = '\0';
+APP\ble-contral.c(25): error:  #44: expression must have pointer type
+      strstr(input,Ble_data->Head);
+APP\ble-contral.c(25): warning:  #167-D: argument of type "const uint8_t *" is incompatible with parameter of type "const char *"
+      strstr(input,Ble_data->Head);
+APP\ble-contral.c(18): warning:  #177-D: variable "Ble_data" was declared but never referenced
+      Ble_data_t *Ble_data;
+APP\ble-contral.c: 2 warnings, 5 errors
+"APP\ble-contral.c" - 5 Error(s), 2 Warning(s).
+compiling ble-contral.c...
+APP\ble-contral.c(32): warning:  #767-D: conversion from pointer to smaller integer
+      OS_MemCopy(Ble_data->data,(uint8_t)(ptr+3),Ble_data->len);
+APP\ble-contral.c(32): error:  #167: argument of type "uint8_t" is incompatible with parameter of type "INT8U *"
+      OS_MemCopy(Ble_data->data,(uint8_t)(ptr+3),Ble_data->len);
+APP\ble-contral.c(34): warning:  #940-D: missing return statement at end of non-void function "Deal_BLE_Dat"
+  }
+APP\ble-contral.c(18): warning:  #550-D: variable "status" was set but never used
+      ErrorStatus status;
+APP\ble-contral.c: 3 warnings, 1 error
+"APP\ble-contral.c" - 1 Error(s), 3 Warning(s).
 </pre>
 </body>
 </html>
-D: last line of file ends without a newline
-  #include "ble-contral.h"
-APP\ble-contral.c: 1 warning, 0 errors
-linking...
-Program Size: Code=19120 RO-data=592 RW-data=128 ZI-data=5800  
-FromELF: creating hex file...
-"..\OBJ\CR_UCOSII.axf" - 0 Error(s), 2 Warning(s).
-s_q.c...
-compiling os_sem.c...
-compiling os_task.c...
-compiling os_time.c...
-compiling os_tmr.c...
-compiling os_cpu_c.c...
-linking...
-Program Size: Code=19044 RO-data=592 RW-data=128 ZI-data=5800  
-FromELF: creating hex file...
-"..\OBJ\CR_UCOSII.axf" - 0 Error(s), 0 Warning(s).
-t not created
-(s), 0 Warning(s).
-Target not created
-compiling main.c...
-main.c(106): error:  #29: expected an expression
-        OSTaskCreate(walk_task,(void *)0,(OS_STK*)&WALK_TASK_STK[WALK_STK_SIZE-1],WALK_TASK_PRIO);         
-main.c(108): error:  #29: expected an expression
-        OSTaskCreate(TroubleDeal_task,(void *)0,(OS_STK*)&TROUBLEDEAL_TASK_STK[TROUBLEDEAL_STK_SIZE-1],TROUBLEDEAL_TASK_PRIO);                                                  OSTaskCreate(walk_task,(void *)0,(OS_STK*)&WALK_TASK_STK[WALK_STK_SIZE-1],WALK_TASK_PRIO);   
-main.c: 0 warnings, 2 errors
-"main.c" - 2 Error(s), 0 Warning(s).
