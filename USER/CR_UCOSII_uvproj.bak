@@ -424,16 +424,6 @@
               <FileType>1</FileType>
               <FilePath>.\APP\walk-contral.c</FilePath>
             </File>
-            <File>
-              <FileName>trouble-deal.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\APP\trouble-deal.c</FilePath>
-            </File>
-            <File>
-              <FileName>ble-contral.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\APP\ble-contral.c</FilePath>
-            </File>
           </Files>
         </Group>
         <Group>

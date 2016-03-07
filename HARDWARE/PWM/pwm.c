@@ -2,6 +2,13 @@
 #include "led.h"
 #include "sys.h"
 #include "usart.h"
+////////////////////////////////////////////////////////////////////////////////// 	 
+//如果使用ucos,则包括下面的头文件即可.
+#if SYSTEM_SUPPORT_UCOS
+#include "includes.h"					//ucos 使用	  
+#endif
+//////////////////////////////////////////////////////////////////////////////////	 
+extern OS_EVENT * sem_walk_contral;
 //////////////////////////////////////////////////////////////////////////////////	 
 //本程序只供学习使用，未经作者许可，不得用于其它任何用途
 //ALIENTEK Mini STM32开发板
@@ -14,7 +21,7 @@
 //Copyright(C) 正点原子 2009-2019
 //All rights reserved
 ////////////////////////////////////////////////////////////////////////////////// 	  
-#define UPDATE_TIME  20 //20次更新事件后进入中断
+#define UPDATE_TIME  60 //20次更新事件后进入中断
 //功能:Time1 channal1 的 gpio初始化 PA8->PE9 PA9->PE11
 //输入:
 //输出:
@@ -87,31 +94,31 @@ void TIM1_PWM_Init(u16 arr,u16 psc)
 
 
 void TIM1_PWM_Begin(u32 val)
-{
-    
+{   
     TIM1_GPIO_Init();
-    TIM_CtrlPWMOutputs(TIM1,ENABLE);	//MOE 主输出使能
     TIM_SetCompare1(TIM1,val); 
     TIM_SetCompare2(TIM1,val); 
     TIM_ITConfig( TIM1, TIM_IT_Update , ENABLE );//使能或者失能指定的TIM中断    
+    TIM_CtrlPWMOutputs(TIM1,ENABLE);	//MOE 主输出使能
 	TIM_Cmd(TIM1, ENABLE);  //使能TIM1    
 }
 
 void TIM1_PWM_Stop(void)
 {
-    TIM1_GPIO_Sleep();
-    TIM_Cmd(TIM1, DISABLE);  //使能TIM1
-    TIM_CtrlPWMOutputs(TIM1,DISABLE);	//MOE 主输出使能       
+    TIM_CtrlPWMOutputs(TIM1,DISABLE);	//MOE 主输出失能  
+    TIM_Cmd(TIM1, DISABLE);  //失能TIM1
+    TIM1_GPIO_Sleep();   
 } 
 
 //time1中断程序
 void TIM1_UP_IRQHandler(void)
 {
+    OSIntEnter();
     if (TIM_GetITStatus(TIM1, TIM_IT_Update) != RESET)  
     {
         TIM_ClearFlag(TIM1, TIM_FLAG_Update);
-        TIM_ClearITPendingBit(TIM1, TIM_IT_Update  );   
-        TIM1_PWM_Stop();
-        LED0 = !LED0;
+        TIM_ClearITPendingBit(TIM1, TIM_IT_Update  );  
+        OSSemPost(sem_walk_contral);
     }
+    OSIntExit();
 }

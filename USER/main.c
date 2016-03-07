@@ -5,7 +5,7 @@
 #include "usart.h"
 
 #include "walk-contral.h"
-
+#include "pwm.h"
 //ALIENTEK Mini STM32开发板范例代码35
 //UCOSII实验1-任务调度  
 //技术支持：www.openedv.com
@@ -16,7 +16,7 @@
 /////////////////////////UCOSII任务设置///////////////////////////////////
 //START 任务
 //设置任务优先级
-#define START_TASK_PRIO      			10 //开始任务的优先级设置为最低
+#define START_TASK_PRIO      			20 //开始任务的优先级设置为最低
 //设置任务堆栈大小
 #define START_STK_SIZE  				64
 //任务堆栈	
@@ -26,7 +26,7 @@ void start_task(void *pdata);
  	
 //CR行走任务
 //设置任务优先级
-#define WALK_TASK_PRIO       			9 
+#define WALK_TASK_PRIO       			10 
 //设置任务堆栈大小
 #define WALK_STK_SIZE  		    		64
 //任务堆栈	
@@ -36,7 +36,7 @@ void walk_task(void *pdata);
 
 //BLECtrl蓝牙控制任务
 //设置任务优先级
-#define BLECTRL_TASK_PRIO       			8 
+#define BLECTRL_TASK_PRIO       			12 
 //设置任务堆栈大小
 #define BLECTRL_STK_SIZE  		    		64
 //任务堆栈	
@@ -46,7 +46,7 @@ void BLECtrl_task(void *pdata);
 
 //TroubleDeal壁障处理任务
 //设置任务优先级
-#define TROUBLEDEAL_TASK_PRIO       			7 
+#define TROUBLEDEAL_TASK_PRIO       			11
 //设置任务堆栈大小
 #define TROUBLEDEAL_STK_SIZE  		    		64
 //任务堆栈	
@@ -56,7 +56,7 @@ void TroubleDeal_task(void *pdata);
 
 //LED任务
 //设置任务优先级
-#define LED0_TASK_PRIO       			11 
+#define LED0_TASK_PRIO       			19
 //设置任务堆栈大小
 #define LED0_STK_SIZE  		    		64
 //任务堆栈	
@@ -64,7 +64,9 @@ OS_STK LED0_TASK_STK[LED0_STK_SIZE];
 //任务函数
 void led0_task(void *pdata);
 
-
+///////////
+OS_EVENT * sem_walk_contral;		//walk_contral信号量指针	
+///////////
 
  int main(void)
  {	
@@ -80,7 +82,7 @@ void led0_task(void *pdata);
     WalK_Init(); //初始化行走动作
     delay_ms(100);
      #ifdef debug
-        printf("Main into\t\n");
+        printf("Main into\n\t");
 //        printf("main = %x\n",p0); 
      #endif 
      
@@ -99,11 +101,11 @@ void start_task(void *pdata)
 //    #endif
     OS_CPU_SR cpu_sr=0;
 	pdata = pdata; 
+    sem_walk_contral = OSSemCreate(0);		//创建信号量
   	OS_ENTER_CRITICAL();			//进入临界区(无法被中断打断)  
-
-   	OSTaskCreate(walk_task,(void *)0,(OS_STK*)&WALK_TASK_STK[WALK_STK_SIZE-1],WALK_TASK_PRIO);						   
+    OSTaskCreate(walk_task,(void *)0,(OS_STK*)&WALK_TASK_STK[WALK_STK_SIZE-1],WALK_TASK_PRIO);
    	OSTaskCreate(BLECtrl_task,(void *)0,(OS_STK*)&BLECTRL_TASK_STK[BLECTRL_STK_SIZE-1],BLECTRL_TASK_PRIO);						   
-   	OSTaskCreate(TroubleDeal_task,(void *)0,(OS_STK*)&TROUBLEDEAL_TASK_STK[TROUBLEDEAL_STK_SIZE-1],TROUBLEDEAL_TASK_PRIO);						      	OSTaskCreate(walk_task,(void *)0,(OS_STK*)&WALK_TASK_STK[WALK_STK_SIZE-1],WALK_TASK_PRIO);   
+   	OSTaskCreate(TroubleDeal_task,(void *)0,(OS_STK*)&TROUBLEDEAL_TASK_STK[TROUBLEDEAL_STK_SIZE-1],TROUBLEDEAL_TASK_PRIO);						      	
  	OSTaskCreate(led0_task,(void *)0,(OS_STK*)&LED0_TASK_STK[LED0_STK_SIZE-1],LED0_TASK_PRIO);						   
 	OSTaskSuspend(START_TASK_PRIO);	//挂起起始任务.
     
@@ -116,24 +118,57 @@ void start_task(void *pdata)
 }
 
 
-//功能:负责控制小车行走
+//功能:负责控制小车行走,获取消息邮箱中的控制命令，并进行相应控制，
+//      通过信号量挂起等待指定pwm脉冲输出完成，此任务优先级应最高，第一时间获得相应并关闭pwm，之后回到原来的优先级
+//      没有控制指令时直接挂起等待控制指令
 //输入:
 //输出:
 void walk_task(void *pdata)
 {
+    u8 err;
+    OS_CPU_SR cpu_sr=0;
     #ifdef debug
-        printf("walk_task into.\t\n");
+        printf("walk_task into.\n\t");
     #endif
     while(1)
     {
+      //  cpu_sr=0;
+        OS_ENTER_CRITICAL();
         CR_Walk_Contral(CR_Go);
-        delay_ms(1000);
-        CR_Walk_Contral(CR_Stop);
-        delay_ms(1000);
+        OS_EXIT_CRITICAL();
+        #ifdef debug
+            printf("sem1 into.\n\t");
+        #endif
+        OSSemPend(sem_walk_contral,0,&err);        //挂起并等待信号量
+        #ifdef debug
+            printf("sem1 out.\t\n");
+        #endif
+      //  cpu_sr=0;
+        OS_ENTER_CRITICAL();
+        TIM1_PWM_Stop();
+        OS_EXIT_CRITICAL();	
+        //delay_ms(2000);
+       // cpu_sr=0;
+        OS_ENTER_CRITICAL();
+        CR_Walk_Contral(CR_Back);
+        OS_EXIT_CRITICAL();	
+        #ifdef debug
+            printf("sem2 into.\t\n");
+        #endif
+        OSSemPend(sem_walk_contral,0,&err);        //挂起并等待信号量
+        #ifdef debug
+            printf("sem2 out.\t\n");
+        #endif
+        //cpu_sr=0;
+        OS_ENTER_CRITICAL();
+        TIM1_PWM_Stop();
+        OS_EXIT_CRITICAL();	
+        //delay_ms(2000);
     } 
 }
 
 //功能:蓝牙接收任务
+//优先级排第三低，用于接收串口蓝牙的数据，处理后发送控制消息给walk_contral任务
 //输入:
 //输出:
 void BLECtrl_task(void *pdata)
@@ -149,6 +184,7 @@ void BLECtrl_task(void *pdata)
 
 
 //功能:避障的检测与处理任务
+//此任务优先级应该比walk_contral低一级，用于检测到有障碍物时给walk_contral发送信号量及时改变路径
 //输入:
 //输出:
 void TroubleDeal_task(void *pdata)
@@ -163,6 +199,7 @@ void TroubleDeal_task(void *pdata)
 }
 
 //LED0任务
+//优先级最低，状态指示和调试
 void led0_task(void *pdata)
 {	
      #ifdef debug

@@ -3,6 +3,8 @@
 "..\obj\stm32f10x_it.o"
 "..\obj\system_stm32f10x.o"
 "..\obj\walk-contral.o"
+"..\obj\trouble-deal.o"
+"..\obj\ble-contral.o"
 "..\obj\led.o"
 "..\obj\pwm.o"
 "..\obj\delay.o"
