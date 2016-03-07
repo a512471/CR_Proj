@@ -25,3 +25,4 @@
 ..\obj\main.o: ..\UCOSII\PORT\os_cpu.h
 ..\obj\main.o: ..\SYSTEM\usart\usart.h
 ..\obj\main.o: .\APP\walk-contral.h
+..\obj\main.o: ..\HARDWARE\PWM\pwm.h

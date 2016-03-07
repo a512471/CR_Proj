@@ -15,3 +15,12 @@
 ..\obj\pwm.o: ..\HARDWARE\LED\led.h
 ..\obj\pwm.o: ..\SYSTEM\usart\usart.h
 ..\obj\pwm.o: E:\win7\Keil_v5\ARM\ARMCC\bin\..\include\stdio.h
+..\obj\pwm.o: ..\UCOSII\CONFIG\includes.h
+..\obj\pwm.o: E:\win7\Keil_v5\ARM\ARMCC\bin\..\include\string.h
+..\obj\pwm.o: E:\win7\Keil_v5\ARM\ARMCC\bin\..\include\ctype.h
+..\obj\pwm.o: E:\win7\Keil_v5\ARM\ARMCC\bin\..\include\stdlib.h
+..\obj\pwm.o: E:\win7\Keil_v5\ARM\ARMCC\bin\..\include\stdarg.h
+..\obj\pwm.o: ..\UCOSII\CORE\ucos_ii.h
+..\obj\pwm.o: ..\UCOSII\CONFIG\includes.h
+..\obj\pwm.o: ..\UCOSII\CONFIG\os_cfg.h
+..\obj\pwm.o: ..\UCOSII\PORT\os_cpu.h
