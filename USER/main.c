@@ -6,13 +6,15 @@
 
 #include "walk-contral.h"
 #include "pwm.h"
+#include "ble-contral.h"
+#include "trouble-deal.h"
 //ALIENTEK Mini STM32开发板范例代码35
 //UCOSII实验1-任务调度  
 //技术支持：www.openedv.com
 //广州市星翼电子科技有限公司  	 
 
 
-
+extern u8 USART2_RX_BUF[USART2_REC_LEN];
 /////////////////////////UCOSII任务设置///////////////////////////////////
 //START 任务
 //设置任务优先级
@@ -64,9 +66,11 @@ OS_STK LED0_TASK_STK[LED0_STK_SIZE];
 //任务函数
 void led0_task(void *pdata);
 
-///////////
-OS_EVENT * sem_walk_contral;		//walk_contral信号量指针	
-///////////
+/////////////////////////////////////////////////////////
+OS_EVENT * sem_walk_contral;		//walk_contral信号量指针
+OS_EVENT * msg_ble_data;			//蓝牙数据邮箱事件块指针
+OS_EVENT * msg_ble_contral;			//蓝牙控制指令邮箱事件块指针
+/////////////////////////////////////////////////////////////
 
  int main(void)
  {	
@@ -77,12 +81,14 @@ OS_EVENT * sem_walk_contral;		//walk_contral信号量指针
 	delay_init();	    	 //延时函数初始化	
     NVIC_Configuration();	 
 	LED_Init();		  	//初始化与LED连接的硬件接口 
-    uart_init(115200);	 //初始化为115200 注：需要加入延时
+    uart_init(9600);	 //初始化为115200 注：需要加入延时
     delay_ms(100);
     WalK_Init(); //初始化行走动作
+    BLE_init();
     delay_ms(100);
+     
      #ifdef debug
-        printf("Main into\n\t");
+        printf("Main into.\r\n");
 //        printf("main = %x\n",p0); 
      #endif 
      
@@ -102,6 +108,8 @@ void start_task(void *pdata)
     OS_CPU_SR cpu_sr=0;
 	pdata = pdata; 
     sem_walk_contral = OSSemCreate(0);		//创建信号量
+    msg_ble_data  = OSMboxCreate((void*)0);	//创建消息邮箱
+    msg_ble_contral  = OSMboxCreate((void*)0);	//创建消息邮箱
   	OS_ENTER_CRITICAL();			//进入临界区(无法被中断打断)  
     OSTaskCreate(walk_task,(void *)0,(OS_STK*)&WALK_TASK_STK[WALK_STK_SIZE-1],WALK_TASK_PRIO);
    	OSTaskCreate(BLECtrl_task,(void *)0,(OS_STK*)&BLECTRL_TASK_STK[BLECTRL_STK_SIZE-1],BLECTRL_TASK_PRIO);						   
@@ -111,7 +119,7 @@ void start_task(void *pdata)
     
      #ifdef debug
 //        printf("start_task = %x\n",p0);
-        printf("start_task into\t\n");
+        printf("start_task into\r\n");
      #endif    
     
 	OS_EXIT_CRITICAL();				//退出临界区(可以被中断打断)
@@ -127,42 +135,42 @@ void walk_task(void *pdata)
 {
     u8 err;
     OS_CPU_SR cpu_sr=0;
+    u8 *ble_contral_cmd;
+    u16 RoundTimes_EachContral = 0;//每次控制时进入timer中断的次数
     #ifdef debug
-        printf("walk_task into.\n\t");
+        printf("walk_task into.\r\n");
     #endif
     while(1)
     {
-      //  cpu_sr=0;
-        OS_ENTER_CRITICAL();
-        CR_Walk_Contral(CR_Go);
-        OS_EXIT_CRITICAL();
         #ifdef debug
-            printf("sem1 into.\n\t");
+            printf("walk_wait_ble_msg into.\r\n");
         #endif
-        OSSemPend(sem_walk_contral,0,&err);        //挂起并等待信号量
+        
+        ble_contral_cmd = (u8 *)OSMboxPend(msg_ble_contral,0,&err); //等待蓝牙控制信号
+        
         #ifdef debug
-            printf("sem1 out.\t\n");
+            printf("walk_wait_ble_msg out.\r\n");
         #endif
-      //  cpu_sr=0;
+        
+        cpu_sr=0;
         OS_ENTER_CRITICAL();
-        TIM1_PWM_Stop();
-        OS_EXIT_CRITICAL();	
-        //delay_ms(2000);
-       // cpu_sr=0;
-        OS_ENTER_CRITICAL();
-        CR_Walk_Contral(CR_Back);
-        OS_EXIT_CRITICAL();	
+        CR_Walk_Contral(*ble_contral_cmd);
+        OS_EXIT_CRITICAL();  
+        if(*ble_contral_cmd == CR_Stop)
+        {
+            RoundTimes_EachContral = 0;
+            //调用路径记忆功能
+            continue;
+        }
         #ifdef debug
-            printf("sem2 into.\t\n");
+            printf("walk_sem into.\r\n");
         #endif
-        OSSemPend(sem_walk_contral,0,&err);        //挂起并等待信号量
+        OSSemPend(sem_walk_contral,0,&err);        //挂起并等待PWM完成的信号量
         #ifdef debug
-            printf("sem2 out.\t\n");
+            printf("walk_sem out.\r\n");
         #endif
-        //cpu_sr=0;
-        OS_ENTER_CRITICAL();
-        TIM1_PWM_Stop();
-        OS_EXIT_CRITICAL();	
+        
+        RoundTimes_EachContral++;
         //delay_ms(2000);
     } 
 }
@@ -173,12 +181,41 @@ void walk_task(void *pdata)
 //输出:
 void BLECtrl_task(void *pdata)
 {
+    u8 err;	
+    u8 *ble_data;//蓝牙发送过来的数据
+    u8 *ble_contral_cmd;//对接收到的数据提取出来的指令
     #ifdef debug
-        printf("BLECtrl into.\t\n");
+        printf("BLECtrl into.\r\n");
     #endif    
+
     while(1)
     {
-        delay_ms(1000);
+        #ifdef debug
+            printf("msg into.\r\n");
+        #endif 
+        
+        ble_data = (u8 *)OSMboxPend(msg_ble_data,0,&err); 
+      
+        
+        if(Deal_BLE_Dat(ble_data,ble_contral_cmd) == ERROR)
+        {
+            USART2_RX_STA = 0;
+            continue;
+        }
+        
+        #ifdef debug
+            printf("the reveive is %s.\r\n",ble_data);
+        #endif 
+        
+        OSMboxPost(msg_ble_contral, ble_contral_cmd);
+        
+        #ifdef debug
+            printf("msg out.\r\n");
+        #endif            
+        
+        USART2_RX_STA = 0;//使能下一次蓝牙接收
+        
+  
     }
 }  
 
@@ -190,7 +227,7 @@ void BLECtrl_task(void *pdata)
 void TroubleDeal_task(void *pdata)
 {
     #ifdef debug
-        printf("TroubleDeal into.\t\n");
+        printf("TroubleDeal into.\r\n");
     #endif
     while(1)
     {
@@ -206,15 +243,15 @@ void led0_task(void *pdata)
 //        u32 a = 1;
 //        u32 *p0 = &a;
 //        printf("led1_task = %x\n",p0);
-        printf("led0_task into.\t\n");
+        printf("led0_task into.\r\n");
      #endif        
  	
 	while(1)
 	{
 		LED0=0;
-		delay_ms(100);
+		delay_ms(1000);
 		LED0=1;
-		delay_ms(100);
+		delay_ms(1000);
 	};
 }
 

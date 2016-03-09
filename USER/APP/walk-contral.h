@@ -27,19 +27,19 @@
 #define CR_LWalk_PUL_PIN   GPIO_Pin_9 
 #define CR_RWalk_PUL_PIN   GPIO_Pin_11 
 
-#define CR_LWalk_ENA_GPIOx   GPIOA
-#define CR_RWalk_ENA_GPIOx   GPIOA 
-#define CR_LWalk_DIR_GPIOx   GPIOA
-#define CR_RWalk_DIR_GPIOx   GPIOA 
+#define CR_LWalk_ENA_GPIOx   GPIOB
+#define CR_RWalk_ENA_GPIOx   GPIOB 
+#define CR_LWalk_DIR_GPIOx   GPIOB
+#define CR_RWalk_DIR_GPIOx   GPIOB 
 #define CR_LWalk_PUL_GPIOx   GPIOE
 #define CR_RWalk_PUL_GPIOx   GPIOE
 
-#define CR_LWalk_ENA_CLK     RCC_APB2Periph_GPIOA
-#define CR_RWalk_ENA_CLK     RCC_APB2Periph_GPIOA 
-#define CR_LWalk_DIR_CLK     RCC_APB2Periph_GPIOA
-#define CR_RWalk_DIR_CLK     RCC_APB2Periph_GPIOA 
-#define CR_LWalk_PUL_CLK     RCC_APB2Periph_GPIOA
-#define CR_RWalk_PUL_CLK     RCC_APB2Periph_GPIOA
+#define CR_LWalk_ENA_CLK     RCC_APB2Periph_GPIOB
+#define CR_RWalk_ENA_CLK     RCC_APB2Periph_GPIOB 
+#define CR_LWalk_DIR_CLK     RCC_APB2Periph_GPIOB
+#define CR_RWalk_DIR_CLK     RCC_APB2Periph_GPIOB 
+#define CR_LWalk_PUL_CLK     RCC_APB2Periph_GPIOE
+#define CR_RWalk_PUL_CLK     RCC_APB2Periph_GPIOE
 
 #define CR_WALK_ENA_GPIP_EQU
 #define CR_WALK_DIR_GPIP_EQU

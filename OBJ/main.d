@@ -26,3 +26,5 @@
 ..\obj\main.o: ..\SYSTEM\usart\usart.h
 ..\obj\main.o: .\APP\walk-contral.h
 ..\obj\main.o: ..\HARDWARE\PWM\pwm.h
+..\obj\main.o: .\APP\ble-contral.h
+..\obj\main.o: .\APP\trouble-deal.h
