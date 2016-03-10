@@ -8,7 +8,7 @@
 #include "includes.h"					//ucos 使用	  
 #endif
 //////////////////////////////////////////////////////////////////////////////////	 
-extern OS_EVENT * sem_walk_contral;
+extern OS_EVENT * sem_per_PWM;
 //////////////////////////////////////////////////////////////////////////////////	 
 //本程序只供学习使用，未经作者许可，不得用于其它任何用途
 //ALIENTEK Mini STM32开发板
@@ -118,7 +118,7 @@ void TIM1_UP_IRQHandler(void)
     {
         TIM_ClearFlag(TIM1, TIM_FLAG_Update);
         TIM_ClearITPendingBit(TIM1, TIM_IT_Update  );  
-        OSSemPost(sem_walk_contral);
+        OSSemPost(sem_per_PWM);
     }
     OSIntExit();
 }

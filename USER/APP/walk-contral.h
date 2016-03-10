@@ -50,7 +50,7 @@
 //CR_Go:直走UPDATE_TIME次脉冲;
 //CR_Back:后退UPDATE_TIME次脉冲;
 //CR_Stop:停止，用于GPIO口省电并停止电机运作
-void CR_Walk_Contral(u8 cmd);
+void CR_Walk_Contral(u32 cmd);
 void WalK_Init(void);
 
 
