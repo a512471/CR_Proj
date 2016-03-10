@@ -12,10 +12,10 @@ static ErrorStatus check_crc(const uint8_t *src_data, const uint8_t len, const u
 
 typedef struct
 {
-    uint8_t *Head;
+    uint8_t Head[3];
     uint8_t len;
-    uint8_t *data;
-    uint8_t *crc;
+    uint8_t data[1];
+    uint8_t crc[2];
 } Ble_data_t;
 //功能:蓝牙数据处理
 //输入:
@@ -23,34 +23,36 @@ typedef struct
 ErrorStatus Deal_BLE_Dat(const uint8_t *input, uint8_t *output)
 {
     ErrorStatus status;
-    Ble_data_t *Ble_data;
-    char *ptr;
-    Ble_data->Head[0] = BLE_DATA_HEAD1;
-    Ble_data->Head[1] = BLE_DATA_HEAD2;
-    Ble_data->Head[2] = '\0';
-    //数据格式：头(0x3A 0x2E) + 数据长度(十六进制从此处之后算起到CRC) + 数据(控制标志) + CRC 
+    Ble_data_t Ble_data;
+    uint8_t *ptr;
+    Ble_data.Head[0] = BLE_DATA_HEAD1;
+    Ble_data.Head[1] = BLE_DATA_HEAD2;
+    Ble_data.Head[2] = '\0';
+    //数据格式：头(0x3A 0x2E) + 数据长度(十六进制从此处算起到CRC) + 数据(控制标志) + CRC 
     //获取数据缓冲区中的数据段
-    ptr = strstr((const char*)input,(char *)(Ble_data->Head));
+    ptr = (uint8_t *)strstr((char *)input,(char *)(Ble_data.Head));
     if(ptr == NULL)
     {
         status = ERROR;
         return (status);
     }
-    Ble_data->len = *(ptr+2);
-    OS_MemCopy(Ble_data->data,(uint8_t *)(ptr+3),Ble_data->len-2);
-    OS_MemCopy(Ble_data->crc,(uint8_t *)(ptr+Ble_data->len+1),2);
+ 
+    Ble_data.len = *(ptr+2);
+        
+    OS_MemCopy(Ble_data.data,(uint8_t *)(ptr+3),Ble_data.len-3);
+    OS_MemCopy(Ble_data.crc,(uint8_t *)(ptr+Ble_data.len),2);
+
     //检验数据的完整性
-    if(check_crc(Ble_data->data,Ble_data->len,Ble_data->crc) == ERROR)
-    {
-        status = ERROR;
-        return (status);
-    }
+//    if(check_crc(Ble_data->data,Ble_data->len,Ble_data->crc) == ERROR)
+//    {
+//        status = ERROR;
+//        return (status);
+//    }
     //提取数据
-    OS_MemCopy(output, Ble_data->data, Ble_data->len-2);
+    OS_MemCopy(output, Ble_data.data, Ble_data.len-3);
     status = SUCCESS;
     return (status);
 }
-
 
 //功能:蓝牙的初始化
 //输入:
@@ -144,12 +146,12 @@ static void uart2_init(u32 bound){
 
 //串口1中断服务程序
 //注意,读取USARTx->SR能避免莫名其妙的错误   	
-u8 USART2_RX_BUF[USART2_REC_LEN];     //接收缓冲,最大USART_REC_LEN个字节.
+uint8_t USART2_RX_BUF[USART2_REC_LEN];     //接收缓冲,最大USART_REC_LEN个字节.
 //接收状态
 //bit15，	接收完成标志
 //bit14，	接收到0x0d
 //bit13~0，	接收到的有效字节数目
-u16 USART2_RX_STA = 0;       //接收状态标记
+uint16_t USART2_RX_STA = 0;       //接收状态标记
 
 #if EN_USART2_RX   //如果使能了接收
 void USART2_IRQHandler(void)                	//串口1中断服务程序
@@ -195,9 +197,9 @@ void USART2_IRQHandler(void)                	//串口1中断服务程序
 #endif	
 
 #ifdef debug
-void puts_debug(const u8* str)
+void puts_debug(const uint8_t* str)
 {      
-    int i;
+    uint8_t i;
     for(i = 0; i < strlen((const char*)str)+1; i++)
         USART_SendData(USART2,str[i]);   
 }

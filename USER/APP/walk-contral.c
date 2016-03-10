@@ -29,7 +29,7 @@ void WalK_Init(void)
 //功能:小车行走动作
 //输入:行走方向
 //输出:
-void CR_Walk_Contral(u8 cmd)
+void CR_Walk_Contral(u32 cmd)
 {
     switch(cmd)
     {
